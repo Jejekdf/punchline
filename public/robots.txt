@@ -1,0 +1,5 @@
+# /robots.txt for Punchline
+User-agent: *
+Allow: /
+
+Sitemap: https://punchline.rnm.biz.id/sitemap.xml
