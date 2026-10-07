@@ -12,6 +12,7 @@
     MoveHorizontal,
     LayoutGrid
   } from 'lucide-svelte';
+  import { tick, untrack } from 'svelte';
   import { isDefaultText } from '../state/memeState.svelte.js';
 
   /**
@@ -87,6 +88,27 @@
   function toggleCollapse(id) {
     collapsedMap[id] = !collapsedMap[id];
   }
+
+  // Bring the selected layer's card into view (canvas tap -> form jumps to top).
+  // On narrow viewports also keep only the active card expanded to save vertical space.
+  $effect(() => {
+    const id = activeLayerId;
+    if (!id) return;
+    const isMobile = window.matchMedia('(max-width: 767px)').matches;
+    untrack(() => {
+      if (isMobile) {
+        const next = {};
+        for (const l of layers) next[l.id] = l.id !== id;
+        collapsedMap = next;
+      } else if (collapsedMap[id]) {
+        collapsedMap[id] = false;
+      }
+    });
+    tick().then(() => {
+      const el = document.querySelector(`[data-layer-id="${CSS.escape(id)}"]`);
+      el?.scrollIntoView({ behavior: 'smooth', block: isMobile ? 'start' : 'nearest' });
+    });
+  });
 </script>
 
 <div class="flex flex-col gap-3 p-3 select-none">
@@ -170,7 +192,8 @@
       {@const isCollapsed = collapsedMap[layer.id] ?? false}
 
       <div
-        class="bg-white border rounded-xl shadow-xs overflow-hidden transition-all {isSelected ? 'border-slate-900 ring-2 ring-slate-900/10' : 'border-slate-200 hover:border-slate-300'}"
+        data-layer-id={layer.id}
+        class="bg-white border rounded-xl shadow-xs overflow-hidden transition-all scroll-mt-2 {isSelected ? 'border-slate-900 ring-2 ring-slate-900/10' : 'border-slate-200 hover:border-slate-300'}"
       >
         <!-- Card Header -->
         <div
