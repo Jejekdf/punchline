@@ -12,34 +12,11 @@
  * @property {number} box_count
  */
 
-// Fallback templates in case of network restriction, adblock, or offline state
+import curatedMemes from "../data/curatedMemes.json";
+
+// Fallback templates in case of network restriction, adblock, or offline state (390+ verified memes)
 /** @type {MemeTemplate[]} */
-export const FALLBACK_TEMPLATES = [
-  { id: "181913649", name: "Drake Hotline Bling", url: "/default-meme.jpg", width: 1200, height: 1200, box_count: 2 },
-  { id: "87743020", name: "Two Buttons", url: "https://i.imgflip.com/1g8my4.jpg", width: 600, height: 908, box_count: 3 },
-  { id: "112126428", name: "Distracted Boyfriend", url: "https://i.imgflip.com/1ur9b0.jpg", width: 1200, height: 800, box_count: 3 },
-  { id: "124824040", name: "Left Exit 12 Off Ramp", url: "https://i.imgflip.com/22bdq6.jpg", width: 804, height: 767, box_count: 3 },
-  { id: "217743513", name: "UNO Draw 25 Cards", url: "https://i.imgflip.com/3lmzyx.jpg", width: 500, height: 494, box_count: 2 },
-  { id: "24759704", name: "Disaster Girl", url: "https://i.imgflip.com/23ls.jpg", width: 500, height: 375, box_count: 2 },
-  { id: "188390779", name: "Woman Yelling At Cat", url: "https://i.imgflip.com/345v97.jpg", width: 680, height: 438, box_count: 2 },
-  { id: "226297822", name: "Panik Kalm Panik", url: "https://i.imgflip.com/3qqcim.png", width: 640, height: 884, box_count: 3 },
-  { id: "129242436", name: "Change My Mind", url: "https://i.imgflip.com/24y43o.jpg", width: 482, height: 361, box_count: 2 },
-  { id: "21735", name: "The Rock Driving", url: "https://i.imgflip.com/grr.jpg", width: 568, height: 700, box_count: 2 },
-  { id: "102156234", name: "Mocking Spongebob", url: "https://i.imgflip.com/1otk96.jpg", width: 502, height: 353, box_count: 2 },
-  { id: "252600956", name: "Anakin Padme 4 Panel", url: "https://i.imgflip.com/4acd7j.png", width: 768, height: 768, box_count: 3 },
-  { id: "93895088", name: "Expanding Brain", url: "https://i.imgflip.com/1jwhww.jpg", width: 857, height: 1202, box_count: 4 },
-  { id: "135256802", name: "Epic Handshake", url: "https://i.imgflip.com/28j0te.jpg", width: 900, height: 645, box_count: 3 },
-  { id: "178591740", name: "Gru's Plan", url: "https://i.imgflip.com/2wifvo.jpg", width: 700, height: 449, box_count: 4 },
-  { id: "27813981", name: "Hide the Pain Harold", url: "https://i.imgflip.com/gk5el.jpg", width: 480, height: 601, box_count: 2 },
-  { id: "148909805", name: "Monkey Puppet", url: "https://i.imgflip.com/2gnnjh.jpg", width: 923, height: 500, box_count: 2 },
-  { id: "247113703", name: "Buff Doge vs. Cheems", url: "https://i.imgflip.com/43a45p.png", width: 937, height: 712, box_count: 4 },
-  { id: "101470", name: "Ancient Aliens", url: "https://i.imgflip.com/26am.jpg", width: 500, height: 437, box_count: 2 },
-  { id: "438680", name: "Batman Slapping Robin", url: "https://i.imgflip.com/9ehk.jpg", width: 400, height: 387, box_count: 2 },
-  { id: "61579", name: "Cease and Desist", url: "https://i.imgflip.com/1bhk.jpg", width: 500, height: 333, box_count: 2 },
-  { id: "10077765", name: "Is This A Pigeon", url: "https://i.imgflip.com/60eq0.jpg", width: 1587, height: 1425, box_count: 3 },
-  { id: "119185", name: "Steve Harvey Stare", url: "https://i.imgflip.com/2kbn.jpg", width: 500, height: 375, box_count: 2 },
-  { id: "89370399", name: "Roll Safe Think About It", url: "https://i.imgflip.com/1h7in3.jpg", width: 702, height: 395, box_count: 2 }
-];
+export const FALLBACK_TEMPLATES = /** @type {MemeTemplate[]} */ (curatedMemes);
 
 
 /**
