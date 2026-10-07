@@ -100,17 +100,29 @@ export function getNormalizedCanvasDimensions(naturalWidth, naturalHeight, targe
 }
 
 /**
+ * Canvas pixels per on-screen CSS pixel. >1 when the canvas is displayed smaller than its
+ * internal resolution (e.g. 1200px canvas on a ~340px phone => ~3.5). Returns 1 if not laid out.
+ * @param {HTMLCanvasElement} canvas
+ * @returns {number}
+ */
+export function getCssPxRatio(canvas) {
+  const w = canvas.getBoundingClientRect?.().width;
+  return w > 0 ? canvas.width / w : 1;
+}
+
+/**
  * Returns handle coordinates for corner resize interaction.
  * @param {{x: number, y: number, width: number, height: number}} bounds
  * @param {number} scale
+ * @param {number} [pxRatio] canvas pixels per CSS pixel (see getCssPxRatio)
  */
-export function getLayerHandles(bounds, scale) {
+export function getLayerHandles(bounds, scale, pxRatio = 1) {
   const padding = 4 * scale;
   const boxX = bounds.x - padding;
   const boxY = bounds.y - padding;
   const boxW = bounds.width + padding * 2;
   const boxH = bounds.height + padding * 2;
-  const handleSize = Math.max(8, 8 * scale);
+  const handleSize = Math.max(8, 8 * scale, 12 * pxRatio);
 
   return {
     boxX,
@@ -207,11 +219,12 @@ export function renderMeme(canvas, image, textLayers, options = {}) {
   }
 
   const scale = getCanvasScale(canvas.width, canvas.height);
+  const pxRatio = forExport ? 1 : getCssPxRatio(canvas);
 
   // 2. Draw text layers
   textLayers.forEach((layer) => {
     const bounds = getTextLayerBounds(ctx, layer, canvas.width, canvas.height);
-    const { boxX, boxY, boxW, boxH, handleSize, handles } = getLayerHandles(bounds, scale);
+    const { boxX, boxY, boxW, boxH, handleSize, handles } = getLayerHandles(bounds, scale, pxRatio);
 
     if (bounds.lines.length === 0) {
       if (!forExport && activeLayerId === layer.id) {

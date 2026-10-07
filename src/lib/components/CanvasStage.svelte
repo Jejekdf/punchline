@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { renderMeme, getTextLayerBounds, getCanvasScale, getLayerHandles, getNormalizedCanvasDimensions } from '../utils/canvasRenderer.js';
+  import { renderMeme, getTextLayerBounds, getCanvasScale, getLayerHandles, getNormalizedCanvasDimensions, getCssPxRatio } from '../utils/canvasRenderer.js';
   import { ensureFontsLoaded } from '../utils/fontLoader.js';
   import { Plus } from 'lucide-svelte';
 
@@ -188,8 +188,9 @@
 
     const bounds = getTextLayerBounds(ctx, activeLayer, canvasEl.width, canvasEl.height);
     const scale = getCanvasScale(canvasEl.width, canvasEl.height);
-    const { handles } = getLayerHandles(bounds, scale);
-    const hitRadius = Math.max(16, 12 * scale);
+    const pxRatio = getCssPxRatio(canvasEl);
+    const { handles } = getLayerHandles(bounds, scale, pxRatio);
+    const hitRadius = Math.max(16, 12 * scale, 24 * pxRatio);
 
     for (const h of handles) {
       const dx = canvasX - h.x;
