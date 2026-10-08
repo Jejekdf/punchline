@@ -20,6 +20,8 @@
   } = $props();
 
   let isExporting = $state(false);
+  let exportFormat = $state('image/png');
+  let exportQuality = $state(0.92);
   let toastMessage = $state('');
   /** @type {'success' | 'error'} */
   let toastType = $state('success');
@@ -97,18 +99,19 @@
 
     try {
       const expCanvas = await createExportCanvas();
-      const blob = await exportCanvasToBlob(expCanvas, 'image/png');
+      const blob = await exportCanvasToBlob(expCanvas, exportFormat, exportQuality);
       const url = URL.createObjectURL(blob);
 
+      const ext = exportFormat === 'image/jpeg' ? 'jpg' : (exportFormat === 'image/webp' ? 'webp' : 'png');
       const link = document.createElement('a');
-      link.download = `meme-${Date.now()}.png`;
+      link.download = `meme-${Date.now()}.${ext}`;
       link.href = url;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      showToast('Meme exported successfully');
+      showToast(`Meme exported as ${ext.toUpperCase()}`);
     } catch (err) {
       console.error('Download error:', err);
       showToast('Export failed', 'error');
@@ -186,11 +189,50 @@
     </div>
   {/if}
 
+  <!-- Format & Quality Controls -->
+  <div class="flex items-center justify-between gap-2 mb-2">
+    <!-- Format Selector (Segmented Control) -->
+    <div class="inline-flex items-center gap-0.5 rounded-lg border border-slate-200 bg-slate-100/90 p-0.5 shadow-2xs">
+      {#each [
+        { label: 'PNG', value: 'image/png' },
+        { label: 'JPG', value: 'image/jpeg' },
+        { label: 'WebP', value: 'image/webp' }
+      ] as fmt}
+        {@const isActive = exportFormat === fmt.value}
+        <button
+          type="button"
+          class="px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 active:scale-[0.96] {isActive ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'}"
+          onclick={() => exportFormat = fmt.value}
+        >
+          {fmt.label}
+        </button>
+      {/each}
+    </div>
+
+    <!-- Quality Slider for JPG / WebP -->
+    {#if exportFormat !== 'image/png'}
+      <div class="flex items-center gap-1.5 animate-in fade-in">
+        <span class="text-[11px] font-semibold text-slate-500">Quality</span>
+        <input
+          type="range"
+          min="50"
+          max="100"
+          step="5"
+          value={Math.round(exportQuality * 100)}
+          oninput={(e) => exportQuality = parseInt(/** @type {HTMLInputElement} */ (e.target).value, 10) / 100}
+          class="w-16 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+          aria-label="Export quality"
+        />
+        <span class="text-[10px] font-mono font-medium text-slate-600 w-7 text-right tabular-nums">{Math.round(exportQuality * 100)}%</span>
+      </div>
+    {/if}
+  </div>
+
   <div class="flex items-center gap-2 w-full">
     <!-- Primary Download Button -->
     <button
       type="button"
-      class="flex-2 inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-slate-900 text-white font-bold text-sm tracking-wide shadow-sm hover:bg-slate-800 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+      class="flex-2 inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-slate-900 text-white font-bold text-sm tracking-wide shadow-sm hover:bg-slate-800 active:scale-[0.96] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
       disabled={isExporting}
       onclick={handleDownload}
     >
@@ -199,7 +241,7 @@
         <span>Exporting…</span>
       {:else}
         <Download size={16} class="stroke-[2.2]" />
-        <span>Download PNG</span>
+        <span>Download {exportFormat === 'image/jpeg' ? 'JPG' : (exportFormat === 'image/webp' ? 'WebP' : 'PNG')}</span>
       {/if}
     </button>
 
