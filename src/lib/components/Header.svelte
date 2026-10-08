@@ -1,18 +1,26 @@
 <script>
-  import { LayoutGrid, Upload, HelpCircle, RotateCcw, X } from 'lucide-svelte';
+  import { LayoutGrid, Upload, HelpCircle, RotateCcw, X, Undo2, Redo2 } from 'lucide-svelte';
   import MemeLogo from './MemeLogo.svelte';
 
   /**
    * @type {{
    *   onOpenTemplates?: () => void,
    *   onUploadImage?: (dataUrl: string, name?: string) => void,
-   *   onReset?: () => void
+   *   onReset?: () => void,
+   *   onUndo?: () => void,
+   *   onRedo?: () => void,
+   *   canUndo?: boolean,
+   *   canRedo?: boolean
    * }}
    */
   let {
     onOpenTemplates,
     onUploadImage,
-    onReset
+    onReset,
+    onUndo,
+    onRedo,
+    canUndo = false,
+    canRedo = false
   } = $props();
 
   let isShortcutsModalOpen = $state(false);
@@ -28,6 +36,10 @@
   ];
 
   const keyShortcuts = [
+    { key: 'Ctrl+Z', desc: 'Undo last change' },
+    { key: 'Ctrl+Y', desc: 'Redo undone change' },
+    { key: 'Arrow keys', desc: 'Nudge active text layer' },
+    { key: 'Shift+Arrow', desc: 'Fast nudge active text layer' },
     { key: 'Esc', desc: 'Deselect active layer' },
     { key: 'Tab', desc: 'Cycle focus through inputs' }
   ];
@@ -104,6 +116,30 @@
       >
         <Upload size={15} class="stroke-[2.2]" />
         <span class="hidden sm:inline">Upload Image</span>
+      </button>
+
+      <!-- Undo -->
+      <button
+        type="button"
+        class="inline-flex items-center justify-center w-9 h-9 min-w-9 min-h-9 rounded-lg border border-slate-300 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 active:scale-[0.96] transition-all shadow-xs disabled:opacity-35 disabled:cursor-not-allowed disabled:pointer-events-none cursor-pointer"
+        onclick={onUndo}
+        disabled={!canUndo}
+        title="Undo (Ctrl+Z)"
+        aria-label="Undo"
+      >
+        <Undo2 size={16} class="stroke-2" />
+      </button>
+
+      <!-- Redo -->
+      <button
+        type="button"
+        class="inline-flex items-center justify-center w-9 h-9 min-w-9 min-h-9 rounded-lg border border-slate-300 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 active:scale-[0.96] transition-all shadow-xs disabled:opacity-35 disabled:cursor-not-allowed disabled:pointer-events-none cursor-pointer"
+        onclick={onRedo}
+        disabled={!canRedo}
+        title="Redo (Ctrl+Y)"
+        aria-label="Redo"
+      >
+        <Redo2 size={16} class="stroke-2" />
       </button>
 
       <!-- Shortcuts / Help -->

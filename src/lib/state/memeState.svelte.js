@@ -340,6 +340,149 @@ class MemeState {
   activeLayerId = $state(null);
   isTemplateModalOpen = $state(false);
 
+  /** @type {Array<{textLayers: TextLayer[], currentImageUrl: string, currentTemplateName: string}>} */
+  history = $state([]);
+  historyIndex = $state(-1);
+  isApplyingHistory = false;
+  /** @type {ReturnType<typeof setTimeout> | null} */
+  #snapshotTimer = null;
+  /** @type {ReturnType<typeof setTimeout> | null} */
+  #draftTimer = null;
+
+  constructor() {
+    this.loadDraft();
+    this.recordSnapshotImmediate();
+  }
+
+  get canUndo() {
+    return this.historyIndex > 0;
+  }
+
+  get canRedo() {
+    return this.historyIndex >= 0 && this.historyIndex < this.history.length - 1;
+  }
+
+  /**
+   * Records a snapshot immediately.
+   */
+  recordSnapshotImmediate() {
+    if (this.isApplyingHistory) return;
+    if (this.#snapshotTimer) {
+      clearTimeout(this.#snapshotTimer);
+      this.#snapshotTimer = null;
+    }
+
+    const snap = {
+      textLayers: JSON.parse(JSON.stringify(this.textLayers)),
+      currentImageUrl: this.currentImageUrl,
+      currentTemplateName: this.currentTemplateName
+    };
+
+    if (this.historyIndex >= 0 && this.history[this.historyIndex]) {
+      const current = this.history[this.historyIndex];
+      if (
+        current.currentImageUrl === snap.currentImageUrl &&
+        current.currentTemplateName === snap.currentTemplateName &&
+        JSON.stringify(current.textLayers) === JSON.stringify(snap.textLayers)
+      ) {
+        return;
+      }
+    }
+
+    const nextHistory = this.history.slice(0, this.historyIndex + 1);
+    nextHistory.push(snap);
+    if (nextHistory.length > 50) {
+      nextHistory.shift();
+    }
+    this.history = nextHistory;
+    this.historyIndex = nextHistory.length - 1;
+    this.saveDraftDebounced();
+  }
+
+  /**
+   * Debounced snapshot for rapid actions like typing or dragging.
+   * @param {number} [delay]
+   */
+  recordSnapshotDebounced(delay = 350) {
+    if (this.isApplyingHistory) return;
+    if (this.#snapshotTimer) clearTimeout(this.#snapshotTimer);
+    this.#snapshotTimer = setTimeout(() => {
+      this.recordSnapshotImmediate();
+    }, delay);
+  }
+
+  undo() {
+    if (!this.canUndo) return;
+    this.isApplyingHistory = true;
+    if (this.#snapshotTimer) clearTimeout(this.#snapshotTimer);
+    this.historyIndex--;
+    const snap = this.history[this.historyIndex];
+    if (snap) {
+      this.textLayers = JSON.parse(JSON.stringify(snap.textLayers));
+      this.currentImageUrl = snap.currentImageUrl;
+      this.currentTemplateName = snap.currentTemplateName;
+      this.activeLayerId = null;
+    }
+    this.isApplyingHistory = false;
+    this.saveDraftDebounced();
+  }
+
+  redo() {
+    if (!this.canRedo) return;
+    this.isApplyingHistory = true;
+    if (this.#snapshotTimer) clearTimeout(this.#snapshotTimer);
+    this.historyIndex++;
+    const snap = this.history[this.historyIndex];
+    if (snap) {
+      this.textLayers = JSON.parse(JSON.stringify(snap.textLayers));
+      this.currentImageUrl = snap.currentImageUrl;
+      this.currentTemplateName = snap.currentTemplateName;
+      this.activeLayerId = null;
+    }
+    this.isApplyingHistory = false;
+    this.saveDraftDebounced();
+  }
+
+  saveDraftDebounced() {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    if (this.#draftTimer) clearTimeout(this.#draftTimer);
+    this.#draftTimer = setTimeout(() => {
+      try {
+        const payload = JSON.stringify({
+          textLayers: this.textLayers,
+          currentImageUrl: this.currentImageUrl,
+          currentTemplateName: this.currentTemplateName
+        });
+        localStorage.setItem('punchline_draft', payload);
+      } catch (err) {
+        console.warn('Failed to save draft:', err);
+      }
+    }, 400);
+  }
+
+  loadDraft() {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    try {
+      const raw = localStorage.getItem('punchline_draft');
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (Array.isArray(data.textLayers) && data.textLayers.length > 0 && data.currentImageUrl) {
+        this.textLayers = data.textLayers;
+        this.currentImageUrl = data.currentImageUrl;
+        this.currentTemplateName = data.currentTemplateName || DEFAULT_NAME;
+      }
+    } catch (err) {
+      console.warn('Failed to load draft:', err);
+    }
+  }
+
+  clearDraft() {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    try {
+      localStorage.removeItem('punchline_draft');
+    } catch {}
+  }
+
   get activeLayer() {
     return this.textLayers.find((l) => l.id === this.activeLayerId) || null;
   }
@@ -359,6 +502,7 @@ class MemeState {
     if (layer) {
       layer.x = x;
       layer.y = y;
+      this.recordSnapshotDebounced(300);
     }
   }
 
@@ -367,6 +511,7 @@ class MemeState {
     const layer = this.textLayers.find((l) => l.id === this.activeLayerId);
     if (layer) {
       Object.assign(layer, fields);
+      this.recordSnapshotDebounced(300);
     }
   }
 
@@ -378,6 +523,7 @@ class MemeState {
     const layer = this.textLayers.find((l) => l.id === id);
     if (layer) {
       Object.assign(layer, fields);
+      this.recordSnapshotDebounced(300);
     }
   }
 
@@ -458,6 +604,7 @@ class MemeState {
       });
     }
     this.activeLayerId = null;
+    this.recordSnapshotImmediate();
   }
 
   /**
@@ -489,6 +636,7 @@ class MemeState {
     };
     this.textLayers = [...this.textLayers, newLayer];
     this.activeLayerId = newId;
+    this.recordSnapshotImmediate();
     return newId;
   }
 
@@ -503,6 +651,7 @@ class MemeState {
     if (this.activeLayerId === id) {
       this.activeLayerId = null;
     }
+    this.recordSnapshotImmediate();
   }
 
 
@@ -666,6 +815,7 @@ class MemeState {
       }
       this.activeLayerId = null;
     }
+    this.recordSnapshotImmediate();
   }
 
   /**
@@ -675,13 +825,18 @@ class MemeState {
   uploadImage(dataUrl, name) {
     this.currentImageUrl = dataUrl;
     this.currentTemplateName = name || 'Custom Upload';
+    this.recordSnapshotImmediate();
   }
 
   reset() {
+    this.clearDraft();
     this.currentImageUrl = DEFAULT_IMAGE;
     this.currentTemplateName = DEFAULT_NAME;
     this.textLayers = createDefaultLayers();
     this.activeLayerId = null;
+    this.history = [];
+    this.historyIndex = -1;
+    this.recordSnapshotImmediate();
   }
 }
 

@@ -73,6 +73,21 @@
         target.tagName === 'TEXTAREA' ||
         target.isContentEditable);
 
+    // Global Undo / Redo shortcuts (Ctrl+Z, Cmd+Z, Ctrl+Y, Ctrl+Shift+Z)
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 'z' || e.key === 'Z')) {
+      e.preventDefault();
+      memeState.undo();
+      return;
+    }
+    if (
+      ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')) ||
+      ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'z' || e.key === 'Z'))
+    ) {
+      e.preventDefault();
+      memeState.redo();
+      return;
+    }
+
     if (e.key === 'Escape') {
       memeState.selectLayer(null);
     } else if (!isEditingText && (e.key === 'Backspace' || e.key === 'Delete')) {
@@ -85,6 +100,26 @@
         } else {
           memeState.updateActiveLayer({ text: '' });
         }
+      }
+    } else if (
+      !isEditingText &&
+      memeState.activeLayerId &&
+      (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight')
+    ) {
+      e.preventDefault();
+      const layer = memeState.activeLayer;
+      if (layer) {
+        const step = e.shiftKey ? 0.02 : 0.005;
+        let dx = 0;
+        let dy = 0;
+        if (e.key === 'ArrowLeft') dx = -step;
+        else if (e.key === 'ArrowRight') dx = step;
+        else if (e.key === 'ArrowUp') dy = -step;
+        else if (e.key === 'ArrowDown') dy = step;
+
+        const nextX = Math.max(0.02, Math.min(0.98, layer.x + dx));
+        const nextY = Math.max(0.02, Math.min(0.98, layer.y + dy));
+        memeState.updateLayerPos(layer.id, nextX, nextY);
       }
     }
   }}
@@ -111,6 +146,10 @@
     onOpenTemplates={() => isTemplateModalOpen = true}
     onUploadImage={(url, name) => memeState.setImage(url, name || 'Custom Upload')}
     onReset={() => memeState.reset()}
+    onUndo={() => memeState.undo()}
+    onRedo={() => memeState.redo()}
+    canUndo={memeState.canUndo}
+    canRedo={memeState.canRedo}
   />
 
   <main class="flex flex-col md:grid md:grid-cols-[1fr_340px] lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px] h-[calc(100dvh-49px)] max-h-[calc(100dvh-49px)] p-2 gap-2 overflow-hidden" aria-label="Meme Generator Workspace">
