@@ -156,7 +156,7 @@ export function getTextLayerBounds(ctx, layer, canvasWidth, canvasHeight) {
   const weight = layer.fontWeight === 'normal' ? '400' : '900';
   ctx.font = `${weight} ${scaledFontSize}px "${fontFam}", "Bebas Neue", Oswald, Anton, Impact, "Comic Neue", Montserrat, sans-serif`;
 
-  const rawText = layer.text || '';
+  const rawText = layer.uppercase ? (layer.text || '').toUpperCase() : (layer.text || '');
   const maxWidth = canvasWidth * (layer.maxWidthRatio || 0.9);
   const lines = wrapText(ctx, rawText, maxWidth);
 

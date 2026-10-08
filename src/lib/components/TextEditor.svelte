@@ -10,7 +10,13 @@
     Bold,
     CircleSlash,
     MoveHorizontal,
-    LayoutGrid
+    LayoutGrid,
+    AlignLeft,
+    AlignCenter,
+    AlignRight,
+    Eye,
+    SunMedium,
+    CaseSensitive
   } from 'lucide-svelte';
   import { tick, untrack } from 'svelte';
   import { isDefaultText } from '../state/memeState.svelte.js';
@@ -354,18 +360,89 @@
               <span class="text-[11px] font-mono font-medium text-slate-600 shrink-0 w-9 text-right tabular-nums">{Math.round((layer.maxWidthRatio ?? 0.9) * 100)}%</span>
             </div>
 
+            <!-- Opacity Slider -->
+            <div class="flex items-center gap-2 px-0.5">
+              <span title="Layer opacity" class="flex items-center">
+                <Eye size={13} class="text-slate-500 shrink-0" />
+              </span>
+              <input
+                type="range"
+                min="10"
+                max="100"
+                step="5"
+                value={Math.round((layer.opacity ?? 1) * 100)}
+                oninput={(e) => handleFieldChange(layer.id, 'opacity', parseInt(/** @type {HTMLInputElement} */ (e.target).value, 10) / 100)}
+                class="flex-1 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+                aria-label="Layer opacity slider"
+              />
+              <span class="text-[11px] font-mono font-medium text-slate-600 shrink-0 w-9 text-right tabular-nums">{Math.round((layer.opacity ?? 1) * 100)}%</span>
+            </div>
+
             <!-- Formatting Toolbar Row 2: Alignment, Stroke, Bold/Caps -->
-            <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 flex-wrap sm:flex-nowrap">
-              <!-- Text Styling Group: Bold -->
-              <div class="inline-flex items-center rounded-md border border-slate-300 p-0.5 bg-white shadow-2xs">
+            <div class="flex items-center justify-between gap-1.5 pt-1 border-t border-slate-100 flex-wrap">
+              <!-- Text Styling Group: Bold, Caps, Shadow -->
+              <div class="inline-flex items-center gap-0.5 rounded-md border border-slate-300 p-0.5 bg-white shadow-2xs">
                 <button
                   type="button"
-                  class="w-7 h-7 flex items-center justify-center rounded transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 {(layer.fontWeight ?? 'bold') === 'bold' ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}"
+                  class="w-7 h-7 flex items-center justify-center rounded transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 active:scale-[0.96] {(layer.fontWeight ?? 'bold') === 'bold' ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}"
                   onclick={(e) => { e.stopPropagation(); handleFieldChange(layer.id, 'fontWeight', (layer.fontWeight ?? 'bold') === 'bold' ? 'normal' : 'bold'); }}
                   title="Toggle Bold / Regular"
                   aria-label="Toggle bold"
                 >
                   <Bold size={13} class="stroke-[2.5]" />
+                </button>
+
+                <button
+                  type="button"
+                  class="w-7 h-7 flex items-center justify-center rounded transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 active:scale-[0.96] {layer.uppercase !== false ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}"
+                  onclick={(e) => { e.stopPropagation(); handleFieldChange(layer.id, 'uppercase', layer.uppercase === false ? true : false); }}
+                  title="Toggle ALL CAPS"
+                  aria-label="Toggle uppercase"
+                >
+                  <CaseSensitive size={14} class="stroke-[2.2]" />
+                </button>
+
+                <button
+                  type="button"
+                  class="w-7 h-7 flex items-center justify-center rounded transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 active:scale-[0.96] {layer.shadow ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}"
+                  onclick={(e) => { e.stopPropagation(); handleFieldChange(layer.id, 'shadow', !layer.shadow); }}
+                  title="Toggle Text Shadow / Glow"
+                  aria-label="Toggle shadow"
+                >
+                  <SunMedium size={14} class="stroke-[2.2]" />
+                </button>
+              </div>
+
+              <!-- Alignment Group: Left, Center, Right -->
+              <div class="inline-flex items-center gap-0.5 rounded-md border border-slate-300 p-0.5 bg-white shadow-2xs">
+                <button
+                  type="button"
+                  class="w-7 h-7 flex items-center justify-center rounded transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 active:scale-[0.96] {(layer.align ?? 'center') === 'left' ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}"
+                  onclick={(e) => { e.stopPropagation(); handleFieldChange(layer.id, 'align', 'left'); }}
+                  title="Align Left"
+                  aria-label="Align left"
+                >
+                  <AlignLeft size={13} class="stroke-[2.2]" />
+                </button>
+
+                <button
+                  type="button"
+                  class="w-7 h-7 flex items-center justify-center rounded transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 active:scale-[0.96] {(layer.align ?? 'center') === 'center' ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}"
+                  onclick={(e) => { e.stopPropagation(); handleFieldChange(layer.id, 'align', 'center'); }}
+                  title="Align Center"
+                  aria-label="Align center"
+                >
+                  <AlignCenter size={13} class="stroke-[2.2]" />
+                </button>
+
+                <button
+                  type="button"
+                  class="w-7 h-7 flex items-center justify-center rounded transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 active:scale-[0.96] {(layer.align ?? 'center') === 'right' ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}"
+                  onclick={(e) => { e.stopPropagation(); handleFieldChange(layer.id, 'align', 'right'); }}
+                  title="Align Right"
+                  aria-label="Align right"
+                >
+                  <AlignRight size={13} class="stroke-[2.2]" />
                 </button>
               </div>
 
