@@ -7,247 +7,614 @@ const DEFAULT_IMAGE = '/default-meme.jpg';
 const DEFAULT_NAME = 'Drake Hotline Bling';
 
 /**
- * Known layout presets for popular meme templates.
- * Positions text boxes into their respective visual areas rather than generic top/bottom.
- * @type {Record<string, Array<{text?: string, x: number, y: number, maxWidthRatio?: number, fontSize?: number, align?: 'left'|'center'|'right', fill?: string, stroke?: string, strokeWidth?: number, fontWeight?: 'bold'|'normal'}>>}
+ * @typedef {{
+ *   text?: string,
+ *   x?: number,
+ *   y?: number,
+ *   maxWidthRatio?: number,
+ *   fontSize?: number,
+ *   align?: 'left'|'center'|'right',
+ *   fill?: string,
+ *   stroke?: string,
+ *   strokeWidth?: number,
+ *   fontWeight?: 'bold'|'normal'
+ * }} PresetLayerConfig
  */
-const TEMPLATE_LAYOUT_PRESETS = {
-  // Drake Hotline Bling: 2 panels on the right side (white background panels)
-  "drake": [
-    { text: "DISLIKED OPTION", x: 0.75, y: 0.25, maxWidthRatio: 0.44, fontSize: 40, fill: "#000000", stroke: "transparent", strokeWidth: 0, fontWeight: "bold" },
-    { text: "PREFERRED OPTION", x: 0.75, y: 0.75, maxWidthRatio: 0.44, fontSize: 40, fill: "#000000", stroke: "transparent", strokeWidth: 0, fontWeight: "bold" }
-  ],
-  // Two Buttons
-  "button": [
-    { text: "OPTION A", x: 0.33, y: 0.16, maxWidthRatio: 0.28, fontSize: 28, strokeWidth: 3 },
-    { text: "OPTION B", x: 0.65, y: 0.13, maxWidthRatio: 0.28, fontSize: 28, strokeWidth: 3 }
-  ],
-  // Distracted Boyfriend: 3 entities
-  "distracted": [
-    { text: "NEW TEMPTATION", x: 0.22, y: 0.70, maxWidthRatio: 0.28, fontSize: 34, strokeWidth: 4 },
-    { text: "ME", x: 0.52, y: 0.40, maxWidthRatio: 0.24, fontSize: 38, strokeWidth: 4 },
-    { text: "MY RESPONSIBILITIES", x: 0.82, y: 0.60, maxWidthRatio: 0.28, fontSize: 34, strokeWidth: 4 }
-  ],
-  // Left Exit 12
-  "exit": [
-    { text: "SENSIBLE CHOICE", x: 0.35, y: 0.26, maxWidthRatio: 0.30, fontSize: 30, strokeWidth: 3 },
-    { text: "MY BAD DECISION", x: 0.74, y: 0.35, maxWidthRatio: 0.34, fontSize: 30, strokeWidth: 3 }
-  ],
-  // UNO Draw 25
-  "uno": [
-    { text: "DO SOMETHING SIMPLE", x: 0.24, y: 0.38, maxWidthRatio: 0.32, fontSize: 28, fill: "#000000", stroke: "transparent", strokeWidth: 0 },
-    { text: "OR DRAW 25 CARDS", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 42, strokeWidth: 5 }
-  ],
-  // Trade Offer
-  "trade": [
-    { text: "I RECEIVE: NOTHING", x: 0.28, y: 0.30, maxWidthRatio: 0.40, fontSize: 34, strokeWidth: 4 },
-    { text: "YOU RECEIVE: ABSOLUTELY NOTHING", x: 0.72, y: 0.30, maxWidthRatio: 0.40, fontSize: 34, strokeWidth: 4 }
-  ],
-  // Woman Yelling at Cat
-  "yelling": [
-    { text: "ME YELLING AT 3 AM", x: 0.25, y: 0.16, maxWidthRatio: 0.44, fontSize: 36, strokeWidth: 4 },
-    { text: "THE CONFUSED CAT", x: 0.75, y: 0.16, maxWidthRatio: 0.44, fontSize: 36, strokeWidth: 4 }
-  ],
-  // Always Has Been
-  "always": [
-    { text: "WAIT, IT'S ALL [X]?", x: 0.32, y: 0.30, maxWidthRatio: 0.38, fontSize: 32, strokeWidth: 4 },
-    { text: "ALWAYS HAS BEEN.", x: 0.78, y: 0.18, maxWidthRatio: 0.36, fontSize: 32, strokeWidth: 4 }
-  ],
-  // Change My Mind
-  "mind": [
-    { text: "YOUR CONTROVERSIAL OPINION\nCHANGE MY MIND", x: 0.62, y: 0.68, maxWidthRatio: 0.44, fontSize: 28, fill: "#000000", stroke: "transparent", strokeWidth: 0 }
-  ],
-  // Panik Kalm Panik
-  "panik": [
-    { text: "UNEXPECTED SITUATION", x: 0.32, y: 0.16, maxWidthRatio: 0.48, fontSize: 30, fill: "#000000", stroke: "transparent", strokeWidth: 0 },
-    { text: "FOUND A WORKAROUND", x: 0.32, y: 0.50, maxWidthRatio: 0.48, fontSize: 30, fill: "#000000", stroke: "transparent", strokeWidth: 0 },
-    { text: "BROKE EVERYTHING ELSE", x: 0.32, y: 0.84, maxWidthRatio: 0.48, fontSize: 30, fill: "#000000", stroke: "transparent", strokeWidth: 0 }
-  ],
-  // Anakin Padme 4 Panel
-  "anakin": [
-    { text: "I'M GOING TO CHANGE THINGS", x: 0.25, y: 0.22, maxWidthRatio: 0.42, fontSize: 28, strokeWidth: 4 },
-    { text: "FOR THE BETTER, RIGHT?", x: 0.75, y: 0.22, maxWidthRatio: 0.42, fontSize: 28, strokeWidth: 4 },
-    { text: "...", x: 0.25, y: 0.72, maxWidthRatio: 0.42, fontSize: 30, strokeWidth: 4 },
-    { text: "FOR THE BETTER, RIGHT?!", x: 0.75, y: 0.72, maxWidthRatio: 0.42, fontSize: 28, strokeWidth: 4 }
-  ],
-  // Expanding Brain
-  "brain": [
-    { text: "SMALL BRAIN IDEA", x: 0.25, y: 0.13, maxWidthRatio: 0.44, fontSize: 28, strokeWidth: 3 },
-    { text: "AVERAGE BRAIN IDEA", x: 0.25, y: 0.38, maxWidthRatio: 0.44, fontSize: 28, strokeWidth: 3 },
-    { text: "BIG BRAIN IDEA", x: 0.25, y: 0.63, maxWidthRatio: 0.44, fontSize: 28, strokeWidth: 3 },
-    { text: "GALAXY BRAIN IDEA", x: 0.25, y: 0.88, maxWidthRatio: 0.44, fontSize: 28, strokeWidth: 3 }
-  ],
-  // Gru's Plan
-  "gru": [
-    { text: "STEP 1: COME UP WITH A PLAN", x: 0.32, y: 0.25, maxWidthRatio: 0.35, fontSize: 26, strokeWidth: 3 },
-    { text: "STEP 2: EXECUTE THE PLAN", x: 0.82, y: 0.25, maxWidthRatio: 0.35, fontSize: 26, strokeWidth: 3 },
-    { text: "UNINTENDED CONSEQUENCE", x: 0.32, y: 0.75, maxWidthRatio: 0.35, fontSize: 26, strokeWidth: 3 },
-    { text: "UNINTENDED CONSEQUENCE...", x: 0.82, y: 0.75, maxWidthRatio: 0.35, fontSize: 26, strokeWidth: 3 }
-  ],
-  // Batman Slapping Robin
-  "batman": [
-    { text: "MY SILLY IDEA...", x: 0.28, y: 0.36, maxWidthRatio: 0.36, fontSize: 28, strokeWidth: 3 },
-    { text: "SHUT UP AND LISTEN!", x: 0.72, y: 0.18, maxWidthRatio: 0.36, fontSize: 32, strokeWidth: 4 }
-  ],
-  // Epic Handshake
-  "handshake": [
-    { text: "SIDE A", x: 0.24, y: 0.38, maxWidthRatio: 0.35, fontSize: 30, strokeWidth: 4 },
-    { text: "SIDE B", x: 0.76, y: 0.38, maxWidthRatio: 0.35, fontSize: 30, strokeWidth: 4 },
-    { text: "SHARED AGREEMENT", x: 0.50, y: 0.72, maxWidthRatio: 0.70, fontSize: 36, strokeWidth: 5 }
-  ],
-  // Buff Doge vs. Cheems
-  "doge": [
-    { text: "DOGE IN THE PAST", x: 0.25, y: 0.80, maxWidthRatio: 0.40, fontSize: 32, strokeWidth: 4 },
-    { text: "CHEEMS TODAY", x: 0.75, y: 0.80, maxWidthRatio: 0.40, fontSize: 32, strokeWidth: 4 }
-  ],
-  // Is This A Pigeon
-  "pigeon": [
-    { text: "ME", x: 0.30, y: 0.20, maxWidthRatio: 0.32, fontSize: 34, strokeWidth: 4 },
-    { text: "OBVIOUS THING", x: 0.72, y: 0.28, maxWidthRatio: 0.32, fontSize: 32, strokeWidth: 4 },
-    { text: "IS THIS A PIGEON?", x: 0.50, y: 0.90, maxWidthRatio: 0.88, fontSize: 38, strokeWidth: 5 }
-  ],
-  // Steve Harvey
-  "harvey": [
-    { text: "HEARING THE JOKE", x: 0.25, y: 0.15, maxWidthRatio: 0.44, fontSize: 30, strokeWidth: 4 },
-    { text: "REALIZING IT'S ABOUT YOU", x: 0.75, y: 0.15, maxWidthRatio: 0.44, fontSize: 30, strokeWidth: 4 }
-  ],
-  // Disaster Girl
-  "disaster": [
-    { text: "MY LATEST MISTAKE", x: 0.50, y: 0.12, maxWidthRatio: 0.88, fontSize: 40, strokeWidth: 5 },
-    { text: "ME WATCHING IT UNFOLD", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 40, strokeWidth: 5 }
-  ],
-  // Mother Ignoring Kid Drowning In A Pool
-  "drowning": [
-    { text: "ATTENTION", x: 0.52, y: 0.18, maxWidthRatio: 0.30, fontSize: 28, strokeWidth: 3 },
-    { text: "FAVORITE THING", x: 0.78, y: 0.44, maxWidthRatio: 0.28, fontSize: 26, strokeWidth: 3 },
-    { text: "FORGOTTEN RESPONSIBILITY", x: 0.28, y: 0.55, maxWidthRatio: 0.32, fontSize: 26, strokeWidth: 3 },
-    { text: "ANCIENT ABANDONED PROJECT", x: 0.50, y: 0.88, maxWidthRatio: 0.50, fontSize: 26, strokeWidth: 3 }
-  ],
-  // They're The Same Picture
-  "same picture": [
-    { text: "CORPORATE ASKS TO FIND THE DIFFERENCE", x: 0.50, y: 0.12, maxWidthRatio: 0.88, fontSize: 30, strokeWidth: 4 },
-    { text: "THEY'RE THE SAME PICTURE.", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 38, strokeWidth: 5 }
-  ],
-  // I Bet He's Thinking About Other Women
-  "other women": [
-    { text: "I BET HE'S THINKING ABOUT OTHER WOMEN", x: 0.30, y: 0.20, maxWidthRatio: 0.45, fontSize: 26, strokeWidth: 3 },
-    { text: "WHY DO PENGUINS HAVE KNEES?", x: 0.70, y: 0.75, maxWidthRatio: 0.45, fontSize: 26, strokeWidth: 3 }
-  ],
-  // Pawn Stars Best I Can Do
-  "pawn": [
-    { text: "BEST I CAN DO IS FIVE DOLLARS", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 38, strokeWidth: 5 }
-  ],
-  // Waiting Skeleton
-  "skeleton": [
-    { text: "STILL WAITING FOR...", x: 0.50, y: 0.12, maxWidthRatio: 0.88, fontSize: 40, strokeWidth: 5 },
-    { text: "...ANY SIGN OF LIFE", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 40, strokeWidth: 5 }
-  ],
-  // Bernie Support
-  "bernie": [
-    { text: "I AM ONCE AGAIN ASKING FOR YOUR FINANCIAL SUPPORT", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 34, strokeWidth: 4 }
-  ],
-  // This Is Fine
-  "fine": [
-    { text: "THIS IS FINE.", x: 0.50, y: 0.88, maxWidthRatio: 0.80, fontSize: 42, strokeWidth: 5 }
-  ],
-  // Futurama Fry
-  "fry": [
-    { text: "NOT SURE IF SERIOUS", x: 0.50, y: 0.12, maxWidthRatio: 0.88, fontSize: 40, strokeWidth: 5 },
-    { text: "OR JUST TROLLING", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 40, strokeWidth: 5 }
-  ],
-  // One Does Not Simply
-  "simply": [
-    { text: "ONE DOES NOT SIMPLY", x: 0.50, y: 0.12, maxWidthRatio: 0.88, fontSize: 40, strokeWidth: 5 },
-    { text: "WALK INTO MORDOR", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 40, strokeWidth: 5 }
-  ],
-  // Success Kid
-  "success": [
-    { text: "TRIED SOMETHING RISKY", x: 0.50, y: 0.12, maxWidthRatio: 0.88, fontSize: 38, strokeWidth: 5 },
-    { text: "WORKED OUT PERFECTLY", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 38, strokeWidth: 5 }
-  ],
-  // Bad Luck Brian
-  "brian": [
-    { text: "FINALLY GETS A BREAK", x: 0.50, y: 0.12, maxWidthRatio: 0.88, fontSize: 38, strokeWidth: 5 },
-    { text: "BREAKS BOTH LEGS", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 38, strokeWidth: 5 }
-  ],
-  // Matrix Morpheus
-  "morpheus": [
-    { text: "WHAT IF I TOLD YOU", x: 0.50, y: 0.12, maxWidthRatio: 0.88, fontSize: 40, strokeWidth: 5 },
-    { text: "EVERYTHING YOU KNOW IS A LIE", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 40, strokeWidth: 5 }
-  ],
-  // Squidward Looking Out Window
-  "squidward": [
-    { text: "PEOPLE ENJOYING THEIR WEEKEND", x: 0.30, y: 0.75, maxWidthRatio: 0.40, fontSize: 28, strokeWidth: 3 },
-    { text: "ME WORKING OVERTIME", x: 0.75, y: 0.25, maxWidthRatio: 0.38, fontSize: 28, strokeWidth: 3 }
-  ],
-  // All My Homies Hate
-  "homies": [
-    { text: "FORGET THAT THING", x: 0.50, y: 0.12, maxWidthRatio: 0.88, fontSize: 38, strokeWidth: 5 },
-    { text: "ALL MY HOMIES HATE THAT THING", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 36, strokeWidth: 5 }
-  ],
-  // This Is Where I'd Put My Trophy
-  "trophy": [
-    { text: "THIS IS WHERE I'D PUT MY TROPHY", x: 0.50, y: 0.12, maxWidthRatio: 0.88, fontSize: 36, strokeWidth: 5 },
-    { text: "...IF I HAD ONE!", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 42, strokeWidth: 5 }
-  ],
-  // Mocking Spongebob
-  "sponge": [
-    { text: "NORMAL STATEMENT", x: 0.50, y: 0.12, maxWidthRatio: 0.88, fontSize: 38, strokeWidth: 5 },
-    { text: "nOrMaL sTaTeMeNt", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 38, strokeWidth: 5 }
-  ],
-  // Monkey Puppet
-  "monkey": [
-    { text: "FEELING GUILTY", x: 0.28, y: 0.14, maxWidthRatio: 0.42, fontSize: 30, strokeWidth: 4 },
-    { text: "PRETENDING NOT TO NOTICE", x: 0.72, y: 0.14, maxWidthRatio: 0.42, fontSize: 30, strokeWidth: 4 }
-  ],
-  // The Rock Driving
-  "rock": [
-    { text: "WHERE ARE WE GOING?", x: 0.50, y: 0.14, maxWidthRatio: 0.80, fontSize: 34, strokeWidth: 4 },
-    { text: "YOU DON'T WANT TO KNOW", x: 0.50, y: 0.86, maxWidthRatio: 0.80, fontSize: 34, strokeWidth: 4 }
-  ],
-  // Ancient Aliens
-  "alien": [
-    { text: "ALIENS.", x: 0.50, y: 0.88, maxWidthRatio: 0.80, fontSize: 46, strokeWidth: 6 }
-  ],
-  // Roll Safe Think About It
-  "roll": [
-    { text: "CAN'T MAKE MISTAKES", x: 0.50, y: 0.12, maxWidthRatio: 0.88, fontSize: 40, strokeWidth: 5 },
-    { text: "IF YOU NEVER DO ANYTHING", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 40, strokeWidth: 5 }
-  ],
-  // Hide the Pain Harold
-  "harold": [
-    { text: "SMILING THROUGH THE PAIN", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 38, strokeWidth: 5 }
-  ],
-  // Leonardo DiCaprio Cheers
-  "cheers": [
-    { text: "HERE'S TO YOU", x: 0.50, y: 0.12, maxWidthRatio: 0.88, fontSize: 40, strokeWidth: 5 },
-    { text: "CHEERS", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 40, strokeWidth: 5 }
-  ],
-  // Condescending Wonka
-  "wonka": [
-    { text: "PLEASE TELL ME MORE", x: 0.50, y: 0.12, maxWidthRatio: 0.88, fontSize: 38, strokeWidth: 5 },
-    { text: "I'M VERY INTERESTED", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 38, strokeWidth: 5 }
-  ],
-  // First World Problems
-  "first world": [
-    { text: "MY MINOR INCONVENIENCE", x: 0.50, y: 0.12, maxWidthRatio: 0.88, fontSize: 36, strokeWidth: 5 },
-    { text: "RUINED MY WHOLE DAY", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 36, strokeWidth: 5 }
-  ],
-  // Third World Skeptical Kid
-  "skeptical": [
-    { text: "SO YOU'RE TELLING ME", x: 0.50, y: 0.12, maxWidthRatio: 0.88, fontSize: 38, strokeWidth: 5 },
-    { text: "PEOPLE THROW AWAY FOOD?", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 38, strokeWidth: 5 }
-  ],
-  // Most Interesting Man
-  "interesting man": [
-    { text: "I DON'T ALWAYS MAKE MEMES", x: 0.50, y: 0.12, maxWidthRatio: 0.88, fontSize: 36, strokeWidth: 5 },
-    { text: "BUT WHEN I DO, THEY ARE ORIGINAL", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 36, strokeWidth: 5 }
-  ],
-  // Megamind
-  "megamind": [
-    { text: "NO BITCHES?", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 44, strokeWidth: 6 }
-  ]
-};
+
+/**
+ * Known layout presets and authentic catchphrases for iconic meme templates.
+ * Positions text boxes into their respective visual areas rather than generic top/bottom.
+ * @type {Array<{ id: string, match: RegExp, layers: PresetLayerConfig[] }>}
+ */
+const PRESET_DEFINITIONS = [
+  // High-priority / specific memes matched first to prevent substring collisions
+  {
+    id: "megamind",
+    match: /megamind/i,
+    layers: [
+      { text: "NO BITCHES?", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 50, strokeWidth: 6 }
+    ]
+  },
+  {
+    id: "mind",
+    match: /change\s*my\s*mind/i,
+    layers: [
+      { text: "CONTROVERSIAL OPINION\nCHANGE MY MIND", x: 0.62, y: 0.68, maxWidthRatio: 0.44, fontSize: 28, fill: "#000000", stroke: "transparent", strokeWidth: 0 }
+    ]
+  },
+  {
+    id: "always",
+    match: /always\s*has\s*been/i,
+    layers: [
+      { text: "WAIT, IT'S ALL [X]?", x: 0.32, y: 0.30, maxWidthRatio: 0.38, fontSize: 30, strokeWidth: 4 },
+      { text: "ALWAYS HAS BEEN.", x: 0.78, y: 0.18, maxWidthRatio: 0.36, fontSize: 30, strokeWidth: 4 }
+    ]
+  },
+  {
+    id: "charlie_conspiracy",
+    match: /charlie\s*conspiracy|pepe\s*silvia/i,
+    layers: [
+      { text: "MY COMPLICATED CONSPIRACY", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 38, strokeWidth: 5 },
+      { text: "PEPE SILVIA DOES NOT EXIST!", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 38, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "sponge_mock",
+    match: /mocking\s*spongebob/i,
+    layers: [
+      { text: "NORMAL STATEMENT", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 42, strokeWidth: 5 },
+      { text: "nOrMaL sTaTeMeNt", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 42, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "sponge_rainbow",
+    match: /spongebob\s*rainbow/i,
+    layers: [
+      { text: "IMAGINATION", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 46, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "sponge_burn",
+    match: /spongebob\s*burn/i,
+    layers: [
+      { text: "GOOD ADVICE", x: 0.35, y: 0.35, maxWidthRatio: 0.38, fontSize: 28, strokeWidth: 3 },
+      { text: "ME IGNORING IT", x: 0.75, y: 0.70, maxWidthRatio: 0.38, fontSize: 28, strokeWidth: 3 }
+    ]
+  },
+  {
+    id: "brain_sleep",
+    match: /brain\s*before\s*sleep/i,
+    layers: [
+      { text: "ARE YOU GOING TO SLEEP?", x: 0.35, y: 0.15, maxWidthRatio: 0.40, fontSize: 26, strokeWidth: 3 },
+      { text: "YES, NOW SHUT UP.", x: 0.72, y: 0.15, maxWidthRatio: 0.38, fontSize: 26, strokeWidth: 3 },
+      { text: "EMBARRASSING MEMORY FROM 2012", x: 0.45, y: 0.60, maxWidthRatio: 0.45, fontSize: 26, strokeWidth: 3 }
+    ]
+  },
+  {
+    id: "brain_expand",
+    match: /expanding\s*brain|galaxy\s*brain/i,
+    layers: [
+      { text: "BASIC IDEA", x: 0.25, y: 0.13, maxWidthRatio: 0.44, fontSize: 26, strokeWidth: 3 },
+      { text: "SMART IDEA", x: 0.25, y: 0.38, maxWidthRatio: 0.44, fontSize: 26, strokeWidth: 3 },
+      { text: "BIG BRAIN IDEA", x: 0.25, y: 0.63, maxWidthRatio: 0.44, fontSize: 26, strokeWidth: 3 },
+      { text: "GALAXY BRAIN IDEA", x: 0.25, y: 0.88, maxWidthRatio: 0.44, fontSize: 26, strokeWidth: 3 }
+    ]
+  },
+  {
+    id: "yelling_cat",
+    match: /woman\s*yelling\s*at\s*cat/i,
+    layers: [
+      { text: "ANGRY ACCUSATIONS", x: 0.25, y: 0.16, maxWidthRatio: 0.44, fontSize: 34, strokeWidth: 4 },
+      { text: "CONFUSED INNOCENT CAT", x: 0.75, y: 0.16, maxWidthRatio: 0.44, fontSize: 34, strokeWidth: 4 }
+    ]
+  },
+  {
+    id: "both_buttons",
+    match: /both\s*buttons/i,
+    layers: [
+      { text: "OPTION A", x: 0.33, y: 0.14, maxWidthRatio: 0.28, fontSize: 26, strokeWidth: 3 },
+      { text: "OPTION B", x: 0.65, y: 0.12, maxWidthRatio: 0.28, fontSize: 26, strokeWidth: 3 },
+      { text: "PRESSING BOTH", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 36, strokeWidth: 4 }
+    ]
+  },
+  {
+    id: "two_buttons",
+    match: /two\s*buttons/i,
+    layers: [
+      { text: "OPTION A", x: 0.33, y: 0.16, maxWidthRatio: 0.28, fontSize: 28, strokeWidth: 3 },
+      { text: "OPTION B", x: 0.65, y: 0.13, maxWidthRatio: 0.28, fontSize: 28, strokeWidth: 3 }
+    ]
+  },
+  {
+    id: "exit_12",
+    match: /left\s*exit\s*12|exit\s*12/i,
+    layers: [
+      { text: "SENSIBLE CHOICE", x: 0.35, y: 0.26, maxWidthRatio: 0.30, fontSize: 28, strokeWidth: 3 },
+      { text: "MY BAD DECISION", x: 0.74, y: 0.35, maxWidthRatio: 0.34, fontSize: 28, strokeWidth: 3 }
+    ]
+  },
+  {
+    id: "uno_25",
+    match: /uno\s*draw\s*25/i,
+    layers: [
+      { text: "DO SOMETHING SIMPLE", x: 0.24, y: 0.38, maxWidthRatio: 0.32, fontSize: 26, fill: "#000000", stroke: "transparent", strokeWidth: 0 },
+      { text: "OR DRAW 25 CARDS", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 40, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "drake",
+    match: /drake\s*(hotline|blank|no\/yes|meme)/i,
+    layers: [
+      { text: "DISLIKED OPTION", x: 0.75, y: 0.25, maxWidthRatio: 0.44, fontSize: 38, fill: "#000000", stroke: "transparent", strokeWidth: 0, fontWeight: "bold" },
+      { text: "PREFERRED OPTION", x: 0.75, y: 0.75, maxWidthRatio: 0.44, fontSize: 38, fill: "#000000", stroke: "transparent", strokeWidth: 0, fontWeight: "bold" }
+    ]
+  },
+  {
+    id: "distracted",
+    match: /distracted\s*boyfriend/i,
+    layers: [
+      { text: "NEW TEMPTATION", x: 0.22, y: 0.70, maxWidthRatio: 0.28, fontSize: 32, strokeWidth: 4 },
+      { text: "ME", x: 0.52, y: 0.40, maxWidthRatio: 0.24, fontSize: 36, strokeWidth: 4 },
+      { text: "MY RESPONSIBILITIES", x: 0.82, y: 0.60, maxWidthRatio: 0.28, fontSize: 32, strokeWidth: 4 }
+    ]
+  },
+  {
+    id: "disaster_girl",
+    match: /disaster\s*girl/i,
+    layers: [
+      { text: "CHAOTIC ACCIDENT", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 44, strokeWidth: 5 },
+      { text: "ME WATCHING SATISFIED", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 44, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "panik",
+    match: /panik\s*kalm\s*panik/i,
+    layers: [
+      { text: "PANIC SITUATION", x: 0.32, y: 0.16, maxWidthRatio: 0.48, fontSize: 28, fill: "#000000", stroke: "transparent", strokeWidth: 0 },
+      { text: "TEMPORARY RELIEF", x: 0.32, y: 0.50, maxWidthRatio: 0.48, fontSize: 28, fill: "#000000", stroke: "transparent", strokeWidth: 0 },
+      { text: "WORSE PROBLEM", x: 0.32, y: 0.84, maxWidthRatio: 0.48, fontSize: 28, fill: "#000000", stroke: "transparent", strokeWidth: 0 }
+    ]
+  },
+  {
+    id: "rock_driving",
+    match: /rock\s*driving/i,
+    layers: [
+      { text: "INNOCENT QUESTION", x: 0.50, y: 0.14, maxWidthRatio: 0.85, fontSize: 34, strokeWidth: 4 },
+      { text: "SHOCKING ANSWER", x: 0.50, y: 0.86, maxWidthRatio: 0.85, fontSize: 34, strokeWidth: 4 }
+    ]
+  },
+  {
+    id: "anakin_padme",
+    match: /anakin\s*padme|for\s*the\s*better\s*right/i,
+    layers: [
+      { text: "I'M GOING TO CHANGE THINGS", x: 0.25, y: 0.22, maxWidthRatio: 0.42, fontSize: 28, strokeWidth: 4 },
+      { text: "FOR THE BETTER, RIGHT?", x: 0.75, y: 0.22, maxWidthRatio: 0.42, fontSize: 28, strokeWidth: 4 },
+      { text: "...", x: 0.25, y: 0.72, maxWidthRatio: 0.42, fontSize: 30, strokeWidth: 4 },
+      { text: "FOR THE BETTER, RIGHT?!", x: 0.75, y: 0.72, maxWidthRatio: 0.42, fontSize: 28, strokeWidth: 4 }
+    ]
+  },
+  {
+    id: "handshake",
+    match: /epic\s*handshake|the\s*office\s*handshake/i,
+    layers: [
+      { text: "FACTION A", x: 0.24, y: 0.38, maxWidthRatio: 0.34, fontSize: 30, strokeWidth: 4 },
+      { text: "FACTION B", x: 0.76, y: 0.38, maxWidthRatio: 0.34, fontSize: 30, strokeWidth: 4 },
+      { text: "MUTUAL AGREEMENT", x: 0.50, y: 0.72, maxWidthRatio: 0.48, fontSize: 32, strokeWidth: 4 }
+    ]
+  },
+  {
+    id: "gru",
+    match: /gru'?s\s*plan/i,
+    layers: [
+      { text: "STEP 1: COME UP WITH PLAN", x: 0.32, y: 0.25, maxWidthRatio: 0.35, fontSize: 26, strokeWidth: 3 },
+      { text: "STEP 2: EXECUTE PLAN", x: 0.82, y: 0.25, maxWidthRatio: 0.35, fontSize: 26, strokeWidth: 3 },
+      { text: "DISASTROUS REALIZATION", x: 0.32, y: 0.75, maxWidthRatio: 0.35, fontSize: 26, strokeWidth: 3 },
+      { text: "DISASTROUS REALIZATION...", x: 0.82, y: 0.75, maxWidthRatio: 0.35, fontSize: 26, strokeWidth: 3 }
+    ]
+  },
+  {
+    id: "harold",
+    match: /hide\s*the\s*pain\s*harold/i,
+    layers: [
+      { text: "INTERNAL PAIN", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 44, strokeWidth: 5 },
+      { text: "SMILING THROUGH IT", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 44, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "monkey_puppet",
+    match: /monkey\s*puppet|confused\s*monkey/i,
+    layers: [
+      { text: "AWKWARD SITUATION", x: 0.28, y: 0.14, maxWidthRatio: 0.38, fontSize: 28, strokeWidth: 3 },
+      { text: "PRETENDING NOT TO HEAR", x: 0.72, y: 0.14, maxWidthRatio: 0.38, fontSize: 28, strokeWidth: 3 }
+    ]
+  },
+  {
+    id: "doge_cheems",
+    match: /buff\s*doge|doge\s*vs\.?\s*cheems/i,
+    layers: [
+      { text: "THINGS BACK THEN", x: 0.25, y: 0.80, maxWidthRatio: 0.42, fontSize: 32, strokeWidth: 4 },
+      { text: "THINGS TODAY", x: 0.75, y: 0.80, maxWidthRatio: 0.42, fontSize: 32, strokeWidth: 4 }
+    ]
+  },
+  {
+    id: "aliens",
+    match: /ancient\s*aliens/i,
+    layers: [
+      { text: "I'M NOT SAYING IT WAS ALIENS", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 38, strokeWidth: 5 },
+      { text: "BUT IT WAS ALIENS.", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 44, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "batman_slap",
+    match: /batman\s*slapping/i,
+    layers: [
+      { text: "MY BAD OPINION...", x: 0.28, y: 0.36, maxWidthRatio: 0.38, fontSize: 28, strokeWidth: 3 },
+      { text: "SHUT UP!", x: 0.72, y: 0.18, maxWidthRatio: 0.38, fontSize: 34, strokeWidth: 4 }
+    ]
+  },
+  {
+    id: "pigeon",
+    match: /is\s*this\s*a?\s*pigeon|is\s*this\s*butterfly/i,
+    layers: [
+      { text: "ME", x: 0.30, y: 0.20, maxWidthRatio: 0.28, fontSize: 34, strokeWidth: 4 },
+      { text: "OBVIOUS OBJECT", x: 0.72, y: 0.28, maxWidthRatio: 0.36, fontSize: 30, strokeWidth: 4 },
+      { text: "IS THIS A PIGEON?", x: 0.50, y: 0.90, maxWidthRatio: 0.85, fontSize: 38, strokeWidth: 4 }
+    ]
+  },
+  {
+    id: "harvey",
+    match: /steve\s*harvey/i,
+    layers: [
+      { text: "LAUGHING AT THE JOKE", x: 0.25, y: 0.15, maxWidthRatio: 0.42, fontSize: 30, strokeWidth: 4 },
+      { text: "REALIZING IT'S ABOUT ME", x: 0.75, y: 0.15, maxWidthRatio: 0.42, fontSize: 30, strokeWidth: 4 }
+    ]
+  },
+  {
+    id: "roll_safe",
+    match: /roll\s*safe/i,
+    layers: [
+      { text: "CAN'T HAVE A PROBLEM", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 40, strokeWidth: 5 },
+      { text: "IF YOU NEVER START", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 40, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "trade_offer",
+    match: /trade\s*offer/i,
+    layers: [
+      { text: "i receive:\n[WHAT I WANT]", x: 0.28, y: 0.30, maxWidthRatio: 0.40, fontSize: 30, strokeWidth: 4 },
+      { text: "you receive:\n[WHAT YOU GET]", x: 0.72, y: 0.30, maxWidthRatio: 0.40, fontSize: 30, strokeWidth: 4 }
+    ]
+  },
+  {
+    id: "drowning_kid",
+    match: /drowning\s*in\s*a\s*pool|mother\s*ignoring\s*kid/i,
+    layers: [
+      { text: "FAVORITE PROJECT", x: 0.78, y: 0.44, maxWidthRatio: 0.30, fontSize: 26, strokeWidth: 3 },
+      { text: "STRUGGLING CHORE", x: 0.28, y: 0.55, maxWidthRatio: 0.30, fontSize: 26, strokeWidth: 3 },
+      { text: "ABANDONED RESPONSIBILITY", x: 0.50, y: 0.88, maxWidthRatio: 0.45, fontSize: 26, strokeWidth: 3 }
+    ]
+  },
+  {
+    id: "squidward_window",
+    match: /squidward\s*window/i,
+    layers: [
+      { text: "PEOPLE ENJOYING LIFE", x: 0.30, y: 0.75, maxWidthRatio: 0.38, fontSize: 28, strokeWidth: 3 },
+      { text: "ME WORKING OVERTIME", x: 0.75, y: 0.25, maxWidthRatio: 0.38, fontSize: 28, strokeWidth: 3 }
+    ]
+  },
+  {
+    id: "pawn_stars",
+    match: /pawn\s*stars|best\s*i\s*can\s*do/i,
+    layers: [
+      { text: "HIGH EXPECTATIONS", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 42, strokeWidth: 5 },
+      { text: "BEST I CAN DO IS FIVE DOLLARS", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 36, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "homies_hate",
+    match: /all\s*my\s*homies/i,
+    layers: [
+      { text: "FUCK THAT THING", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 42, strokeWidth: 5 },
+      { text: "ALL MY HOMIES HATE THAT THING", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 36, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "same_picture",
+    match: /same\s*picture/i,
+    layers: [
+      { text: "CORPORATE ASKS TO FIND DIFFERENCE", x: 0.50, y: 0.12, maxWidthRatio: 0.88, fontSize: 34, strokeWidth: 4 },
+      { text: "THEY'RE THE SAME PICTURE.", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 38, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "other_women",
+    match: /other\s*women/i,
+    layers: [
+      { text: "I BET HE'S THINKING ABOUT OTHER WOMEN", x: 0.30, y: 0.20, maxWidthRatio: 0.45, fontSize: 26, strokeWidth: 3 },
+      { text: "RANDOM PROFOUND THOUGHT", x: 0.70, y: 0.75, maxWidthRatio: 0.45, fontSize: 26, strokeWidth: 3 }
+    ]
+  },
+  {
+    id: "skeleton",
+    match: /waiting\s*skeleton/i,
+    layers: [
+      { text: "STILL WAITING FOR", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 44, strokeWidth: 5 },
+      { text: "SOMETHING THAT NEVER HAPPENS", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 40, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "bernie",
+    match: /bernie\s*sanders/i,
+    layers: [
+      { text: "I AM ONCE AGAIN ASKING FOR YOUR FINANCIAL SUPPORT", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 34, strokeWidth: 4 }
+    ]
+  },
+  {
+    id: "this_is_fine",
+    match: /this\s*is\s*fine/i,
+    layers: [
+      { text: "THIS IS FINE.", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 48, strokeWidth: 6 }
+    ]
+  },
+  {
+    id: "fry",
+    match: /futurama\s*fry|not\s*sure\s*if/i,
+    layers: [
+      { text: "NOT SURE IF SERIOUS", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 44, strokeWidth: 5 },
+      { text: "OR JUST TROLLING", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 44, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "simply",
+    match: /one\s*does\s*not\s*simply/i,
+    layers: [
+      { text: "ONE DOES NOT SIMPLY", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 44, strokeWidth: 5 },
+      { text: "WALK INTO MORDOR", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 44, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "success_kid",
+    match: /success\s*kid/i,
+    layers: [
+      { text: "TRIED SOMETHING UNCERTAIN", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 42, strokeWidth: 5 },
+      { text: "WORKED OUT PERFECTLY", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 42, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "bad_luck_brian",
+    match: /bad\s*luck\s*brian/i,
+    layers: [
+      { text: "OPTIMISTIC SETUP", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 42, strokeWidth: 5 },
+      { text: "DISASTROUS OUTCOME", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 42, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "morpheus",
+    match: /matrix\s*morpheus|what\s*if\s*i\s*told\s*you/i,
+    layers: [
+      { text: "WHAT IF I TOLD YOU", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 44, strokeWidth: 5 },
+      { text: "EVERYTHING YOU KNOW IS A LIE", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 40, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "trophy",
+    match: /where\s*i'?d\s*put\s*my\s*trophy/i,
+    layers: [
+      { text: "THIS IS WHERE I'D PUT MY TROPHY", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 38, strokeWidth: 5 },
+      { text: "...IF I HAD ONE!", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 44, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "cheers_dicaprio",
+    match: /leonardo\s*dicaprio\s*cheers|cheers/i,
+    layers: [
+      { text: "HERE'S TO YOU", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 44, strokeWidth: 5 },
+      { text: "CHEERS.", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 48, strokeWidth: 6 }
+    ]
+  },
+  {
+    id: "wonka",
+    match: /condescending\s*wonka/i,
+    layers: [
+      { text: "PLEASE TELL ME MORE", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 44, strokeWidth: 5 },
+      { text: "I'M VERY INTERESTED", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 44, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "first_world",
+    match: /first\s*world\s*problems/i,
+    layers: [
+      { text: "MINOR INCONVENIENCE", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 42, strokeWidth: 5 },
+      { text: "RUINED MY WHOLE DAY", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 42, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "skeptical_kid",
+    match: /skeptical\s*third\s*world|skeptical\s*kid/i,
+    layers: [
+      { text: "SO YOU'RE TELLING ME", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 42, strokeWidth: 5 },
+      { text: "ABSURD FIRST WORLD PRIVILEGE?", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 38, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "interesting_man",
+    match: /most\s*interesting\s*man|i\s*don'?t\s*always/i,
+    layers: [
+      { text: "I DON'T ALWAYS MAKE MEMES", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 40, strokeWidth: 5 },
+      { text: "BUT WHEN I DO, THEY ARE ORIGINAL", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 38, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "spiderman_point",
+    match: /spiderman\s*pointing|spider\s*man\s*triple/i,
+    layers: [
+      { text: "PERSON A", x: 0.28, y: 0.48, maxWidthRatio: 0.35, fontSize: 32, strokeWidth: 4 },
+      { text: "PERSON B ACCUSING A", x: 0.72, y: 0.48, maxWidthRatio: 0.35, fontSize: 32, strokeWidth: 4 }
+    ]
+  },
+  {
+    id: "bus_guys",
+    match: /two\s*guys\s*on\s*a\s*bus/i,
+    layers: [
+      { text: "PESSIMIST PERSPECTIVE", x: 0.25, y: 0.75, maxWidthRatio: 0.38, fontSize: 28, strokeWidth: 3 },
+      { text: "OPTIMIST PERSPECTIVE", x: 0.75, y: 0.75, maxWidthRatio: 0.38, fontSize: 28, strokeWidth: 3 }
+    ]
+  },
+  {
+    id: "cmon_do_something",
+    match: /c'?mon\s*do\s*something/i,
+    layers: [
+      { text: "C'MON, DO SOMETHING...", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 40, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "say_the_line_bart",
+    match: /say\s*the\s*line\s*bart/i,
+    layers: [
+      { text: "SAY THE LINE, BART!", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 42, strokeWidth: 5 },
+      { text: "I DIDN'T DO IT...", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 42, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "undertaker",
+    match: /aj\s*styles|undertaker/i,
+    layers: [
+      { text: "OVERCONFIDENT ME", x: 0.35, y: 0.75, maxWidthRatio: 0.45, fontSize: 32, strokeWidth: 4 },
+      { text: "INEVITABLE DOOM", x: 0.65, y: 0.30, maxWidthRatio: 0.45, fontSize: 32, strokeWidth: 4 }
+    ]
+  },
+  {
+    id: "obama_medal",
+    match: /obama\s*medal/i,
+    layers: [
+      { text: "ME", x: 0.28, y: 0.60, maxWidthRatio: 0.35, fontSize: 36, strokeWidth: 4 },
+      { text: "ME CONGRATULATING MYSELF", x: 0.72, y: 0.35, maxWidthRatio: 0.40, fontSize: 30, strokeWidth: 4 }
+    ]
+  },
+  {
+    id: "fellow_kids",
+    match: /fellow\s*kids/i,
+    layers: [
+      { text: "HOW DO YOU DO, FELLOW KIDS?", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 38, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "skinner",
+    match: /skinner\s*out\s*of\s*touch/i,
+    layers: [
+      { text: "AM I OUT OF TOUCH?", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 42, strokeWidth: 5 },
+      { text: "NO, IT'S THE CHILDREN WHO ARE WRONG.", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 34, strokeWidth: 4 }
+    ]
+  },
+  {
+    id: "buzz_woody",
+    match: /woody\s*and\s*buzz/i,
+    layers: [
+      { text: "EVERYWHERE", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 44, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "dinkleberg",
+    match: /dinkleberg/i,
+    layers: [
+      { text: "DINKLEBERG...", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 48, strokeWidth: 6 }
+    ]
+  },
+  {
+    id: "bilbo_keep",
+    match: /why\s*shouldn'?t\s*i\s*keep\s*it/i,
+    layers: [
+      { text: "AFTER ALL... WHY NOT?", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 40, strokeWidth: 5 },
+      { text: "WHY SHOULDN'T I KEEP IT?", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 40, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "friendship_ended",
+    match: /friendship\s*ended/i,
+    layers: [
+      { text: "FRIENDSHIP ENDED WITH [X]", x: 0.50, y: 0.12, maxWidthRatio: 0.88, fontSize: 36, strokeWidth: 4 },
+      { text: "NOW [Y] IS MY BEST FRIEND", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 36, strokeWidth: 4 }
+    ]
+  },
+  {
+    id: "scientist_myself",
+    match: /something\s*of\s*a\s*scientist/i,
+    layers: [
+      { text: "YOU KNOW, I'M SOMETHING OF A SCIENTIST MYSELF", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 32, strokeWidth: 4 }
+    ]
+  },
+  {
+    id: "gentlemen_pleasure",
+    match: /gentlemen,\s*it\s*is\s*with\s*great\s*pleasure/i,
+    layers: [
+      { text: "GENTLEMEN, IT IS WITH GREAT PLEASURE TO INFORM YOU THAT", x: 0.50, y: 0.14, maxWidthRatio: 0.88, fontSize: 30, strokeWidth: 4 },
+      { text: "TODAY IS FRIDAY", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 42, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "dont_want_to_play",
+    match: /i\s*don'?t\s*want\s*to\s*play\s*with\s*you\s*anymore/i,
+    layers: [
+      { text: "I DON'T WANT TO PLAY WITH YOU ANYMORE", x: 0.50, y: 0.88, maxWidthRatio: 0.88, fontSize: 36, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "tap_the_sign",
+    match: /don'?t\s*make\s*me\s*tap\s*the\s*sign/i,
+    layers: [
+      { text: "DON'T MAKE ME TAP THE SIGN", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 38, strokeWidth: 5 },
+      { text: "OBVIOUS RULE ON SIGN", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 38, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "millionaire",
+    match: /who\s*wants\s*to\s*be\s*a\s*millionaire/i,
+    layers: [
+      { text: "DIFFICULT QUESTION", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 40, strokeWidth: 5 },
+      { text: "IS THAT YOUR FINAL ANSWER?", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 38, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "anime_girl_terminator",
+    match: /anime\s*girl\s*hiding/i,
+    layers: [
+      { text: "IMPENDING DOOM", x: 0.70, y: 0.25, maxWidthRatio: 0.45, fontSize: 32, strokeWidth: 4 },
+      { text: "ME HIDING UNDER DESK", x: 0.35, y: 0.75, maxWidthRatio: 0.45, fontSize: 30, strokeWidth: 4 }
+    ]
+  },
+  {
+    id: "scooby_mask",
+    match: /scooby\s*doo\s*mask\s*reveal/i,
+    layers: [
+      { text: "LET'S SEE WHO YOU REALLY ARE...", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 36, strokeWidth: 4 },
+      { text: "THE REAL CULPRIT", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 40, strokeWidth: 5 }
+    ]
+  },
+  {
+    id: "office_congrats",
+    match: /the\s*office\s*congratulations/i,
+    layers: [
+      { text: "UNINTENDED ACCIDENT", x: 0.28, y: 0.35, maxWidthRatio: 0.38, fontSize: 30, strokeWidth: 4 },
+      { text: "ME TAKING FULL CREDIT", x: 0.72, y: 0.60, maxWidthRatio: 0.38, fontSize: 30, strokeWidth: 4 }
+    ]
+  },
+  {
+    id: "feelings_power",
+    match: /feelings\s*of\s*power/i,
+    layers: [
+      { text: "MONEY, STATUS", x: 0.50, y: 0.12, maxWidthRatio: 0.85, fontSize: 36, strokeWidth: 4 },
+      { text: "THIS SPECIFIC SATISFACTION", x: 0.50, y: 0.88, maxWidthRatio: 0.85, fontSize: 38, strokeWidth: 5 }
+    ]
+  }
+];
+
+/**
+ * Map of layout presets indexed by ID.
+ * @type {Record<string, PresetLayerConfig[]>}
+ */
+const TEMPLATE_LAYOUT_PRESETS = Object.fromEntries(
+  PRESET_DEFINITIONS.map((p) => [p.id, p.layers])
+);
 
 /**
  * Complete set of recognized default meme placeholders and template punchlines.
@@ -271,6 +638,16 @@ export const ALL_DEFAULT_PRESET_TEXTS = new Set([
   'PANEL 2',
   'PANEL 3',
   'PANEL 4',
+  '[KETIKA ADA SITUASI INI...]',
+  '[REAKSI ATAU AKIBATNYA]',
+  '[PUNCAK REAKSI / KELAKUAN]',
+  '[KONDISI AWAL]',
+  '[FAKTOR TAK TERDUGA]',
+  '[HASIL AKHIR]',
+  '[FASE 1]',
+  '[FASE 2]',
+  '[FASE 3]',
+  '[FASE 4]',
   ...Object.values(TEMPLATE_LAYOUT_PRESETS).flatMap((layers) =>
     layers.flatMap((l) => (l.text ? [l.text.trim().toUpperCase()] : []))
   )
@@ -285,7 +662,97 @@ export function isDefaultText(text) {
   if (!text || !text.trim()) return true;
   const upper = text.trim().toUpperCase();
   if (ALL_DEFAULT_PRESET_TEXTS.has(upper)) return true;
+  if (/^\[.*\]$/.test(upper)) return true;
   return /^(TOP|BOTTOM|MIDDLE|PANEL\s*\d+|OPTION\s*\d+|CAPTION|YOUR\s*TEXT|NEW\s*CAPTION|SUBTITLE)(\s*TEXT)?$/i.test(upper);
+}
+
+/**
+ * Creates a normalized TextLayer with standard meme styling.
+ * @param {string} id
+ * @param {Partial<TextLayer>} props
+ * @param {string} [baseFont='Anton']
+ * @returns {TextLayer}
+ */
+export function createLayer(id, props, baseFont = 'Anton') {
+  return {
+    id,
+    text: props.text || '',
+    x: props.x ?? 0.5,
+    y: props.y ?? 0.5,
+    fontSize: props.fontSize ?? 44,
+    fontFamily: props.fontFamily || baseFont,
+    fill: props.fill || '#ffffff',
+    stroke: props.stroke ?? '#000000',
+    strokeWidth: props.strokeWidth ?? 6,
+    fontWeight: props.fontWeight || 'bold',
+    uppercase: props.uppercase ?? true,
+    align: 'center',
+    shadow: props.shadow ?? false,
+    opacity: props.opacity ?? 1,
+    maxWidthRatio: props.maxWidthRatio ?? 0.86
+  };
+}
+
+/**
+ * Computes adaptive safe coordinates, font size, and max width based on image aspect ratio.
+ * @param {{ width?: number, height?: number, box_count?: number }} template
+ * @returns {Array<{ text: string, x: number, y: number, fontSize: number, maxWidthRatio: number }>}
+ */
+export function getAdaptiveLayout(template) {
+  const width = template.width || 1000;
+  const height = template.height || 1000;
+  const ratio = width / height;
+  const boxCount = template.box_count || 2;
+
+  // 1 Box (single punchline / bottom caption)
+  if (boxCount === 1) {
+    const y = ratio > 1.3 ? 0.90 : ratio < 0.8 ? 0.93 : 0.88;
+    return [{ text: '[PUNCAK REAKSI / KELAKUAN]', x: 0.5, y, fontSize: 44, maxWidthRatio: 0.86 }];
+  }
+
+  // 3 Boxes (multi-panel setup -> middle -> punchline)
+  if (boxCount === 3) {
+    const topY = ratio > 1.3 ? 0.10 : ratio < 0.8 ? 0.07 : 0.12;
+    const botY = ratio > 1.3 ? 0.90 : ratio < 0.8 ? 0.93 : 0.88;
+    return [
+      { text: '[KONDISI AWAL]', x: 0.5, y: topY, fontSize: 38, maxWidthRatio: 0.86 },
+      { text: '[FAKTOR TAK TERDUGA]', x: 0.5, y: 0.50, fontSize: 38, maxWidthRatio: 0.86 },
+      { text: '[HASIL AKHIR]', x: 0.5, y: botY, fontSize: 38, maxWidthRatio: 0.86 }
+    ];
+  }
+
+  // 4 Boxes (quad panel / 4-koma style)
+  if (boxCount === 4) {
+    return [
+      { text: '[FASE 1]', x: 0.25, y: 0.25, fontSize: 32, maxWidthRatio: 0.44 },
+      { text: '[FASE 2]', x: 0.75, y: 0.25, fontSize: 32, maxWidthRatio: 0.44 },
+      { text: '[FASE 3]', x: 0.25, y: 0.75, fontSize: 32, maxWidthRatio: 0.44 },
+      { text: '[FASE 4]', x: 0.75, y: 0.75, fontSize: 32, maxWidthRatio: 0.44 }
+    ];
+  }
+
+  // Standard 2 Boxes (Classic Setup & Punchline)
+  let topY = 0.10;
+  let botY = 0.90;
+  let fontSize = 44;
+  let maxWidthRatio = 0.86;
+
+  if (ratio > 1.3) {
+    topY = 0.08;
+    botY = 0.92;
+    fontSize = 40;
+    maxWidthRatio = 0.84;
+  } else if (ratio < 0.8) {
+    topY = 0.06;
+    botY = 0.94;
+    fontSize = 38;
+    maxWidthRatio = 0.88;
+  }
+
+  return [
+    { text: '[KETIKA ADA SITUASI INI...]', x: 0.5, y: topY, fontSize, maxWidthRatio },
+    { text: '[REAKSI ATAU AKIBATNYA]', x: 0.5, y: botY, fontSize, maxWidthRatio }
+  ];
 }
 
 /**
@@ -294,40 +761,26 @@ export function isDefaultText(text) {
  */
 function createDefaultLayers() {
   return [
-    {
-      id: 'layer-top',
+    createLayer('layer-top', {
       text: 'DISLIKED OPTION',
       x: 0.75,
       y: 0.25,
       maxWidthRatio: 0.44,
       fontSize: 40,
-      fontFamily: 'Anton',
       fill: '#000000',
       stroke: 'transparent',
-      strokeWidth: 0,
-      fontWeight: 'bold',
-      uppercase: true,
-      align: 'center',
-      shadow: false,
-      opacity: 1
-    },
-    {
-      id: 'layer-bottom',
+      strokeWidth: 0
+    }),
+    createLayer('layer-bottom', {
       text: 'PREFERRED OPTION',
       x: 0.75,
       y: 0.75,
       maxWidthRatio: 0.44,
       fontSize: 40,
-      fontFamily: 'Anton',
       fill: '#000000',
       stroke: 'transparent',
-      strokeWidth: 0,
-      fontWeight: 'bold',
-      uppercase: true,
-      align: 'center',
-      shadow: false,
-      opacity: 1
-    }
+      strokeWidth: 0
+    })
   ];
 }
 
@@ -552,42 +1005,10 @@ class MemeState {
     const allDefault = this.textLayers.length === 0 || this.textLayers.every((l) => isDefaultText(l.text));
     if (allDefault) {
       const baseFont = this.textLayers[0]?.fontFamily || 'Anton';
-      this.textLayers = [
-        {
-          id: `layer-${Date.now()}-1`,
-          text: 'TOP TEXT',
-          x: 0.5,
-          y: 0.12,
-          fontSize: 48,
-          fontFamily: baseFont,
-          fill: '#ffffff',
-          stroke: '#000000',
-          strokeWidth: 6,
-          fontWeight: 'bold',
-          uppercase: true,
-          align: 'center',
-          shadow: false,
-          opacity: 1,
-          maxWidthRatio: 0.9
-        },
-        {
-          id: `layer-${Date.now()}-2`,
-          text: 'BOTTOM TEXT',
-          x: 0.5,
-          y: 0.88,
-          fontSize: 48,
-          fontFamily: baseFont,
-          fill: '#ffffff',
-          stroke: '#000000',
-          strokeWidth: 6,
-          fontWeight: 'bold',
-          uppercase: true,
-          align: 'center',
-          shadow: false,
-          opacity: 1,
-          maxWidthRatio: 0.9
-        }
-      ];
+      const adaptive = getAdaptiveLayout({ width: 1000, height: 1000, box_count: 2 });
+      this.textLayers = adaptive.map((cfg, idx) =>
+        createLayer(`layer-${Date.now()}-${idx}`, cfg, baseFont)
+      );
     } else {
       // If user typed custom text, but stroke was 0 or transparent (e.g. from Drake template),
       // ensure stroke is visible so user text doesn't blend into uploaded image
@@ -655,14 +1076,14 @@ class MemeState {
   }
 
 
-  /** @param {{url: string, name: string, box_count?: number}} template */
+  /** @param {{url: string, name: string, box_count?: number, width?: number, height?: number}} template */
   selectTemplate(template) {
     this.currentImageUrl = template.url;
     this.currentTemplateName = template.name;
 
     // Check if template matches a known preset layout
     const nameLower = (template.name || '').toLowerCase();
-    const matchedKey = Object.keys(TEMPLATE_LAYOUT_PRESETS).find((key) => nameLower.includes(key));
+    const matchedEntry = PRESET_DEFINITIONS.find((entry) => entry.match.test(nameLower));
     const baseFont = this.textLayers[0]?.fontFamily || 'Anton';
 
     // Preserve custom text already typed by the user
@@ -670,151 +1091,19 @@ class MemeState {
       .map((l) => l.text)
       .filter((t) => t && !isDefaultText(t));
 
-    if (matchedKey) {
-      const presetConfigs = TEMPLATE_LAYOUT_PRESETS[matchedKey];
-      this.textLayers = presetConfigs.map((cfg, idx) => ({
-        id: `layer-${Date.now()}-${idx}`,
-        text: userCustomTexts[idx] || cfg.text || (idx === 0 ? 'TOP TEXT' : 'BOTTOM TEXT'),
-        x: cfg.x ?? 0.5,
-        y: cfg.y ?? 0.5,
-        fontSize: cfg.fontSize ?? 44,
-        fontFamily: baseFont,
-        fill: cfg.fill || '#ffffff',
-        stroke: cfg.stroke ?? '#000000',
-        strokeWidth: cfg.strokeWidth ?? 6,
-        fontWeight: cfg.fontWeight || 'bold',
-        uppercase: true,
-        align: cfg.align || 'center',
-        shadow: false,
-        opacity: 1,
-        maxWidthRatio: cfg.maxWidthRatio ?? 0.9
-      }));
-      this.activeLayerId = null;
-    } else {
-      // Dynamic layout based on box_count from API
-      const boxCount = template.box_count || 2;
-      if (boxCount === 1) {
-        this.textLayers = [
-          {
-            id: `layer-${Date.now()}-1`,
-            text: userCustomTexts[0] || 'CAPTION HERE',
-            x: 0.5,
-            y: 0.88,
-            fontSize: 48,
-            fontFamily: baseFont,
-            fill: '#ffffff',
-            stroke: '#000000',
-            strokeWidth: 6,
-            fontWeight: 'bold',
-            uppercase: true,
-            align: 'center',
-            shadow: false,
-            opacity: 1,
-            maxWidthRatio: 0.9
-          }
-        ];
-      } else if (boxCount === 3) {
-        this.textLayers = [
-          {
-            id: `layer-${Date.now()}-1`,
-            text: userCustomTexts[0] || 'TOP TEXT',
-            x: 0.5,
-            y: 0.12,
-            fontSize: 42,
-            fontFamily: baseFont,
-            fill: '#ffffff',
-            stroke: '#000000',
-            strokeWidth: 6,
-            fontWeight: 'bold',
-            uppercase: true,
-            align: 'center',
-            shadow: false,
-            opacity: 1,
-            maxWidthRatio: 0.9
-          },
-          {
-            id: `layer-${Date.now()}-2`,
-            text: userCustomTexts[1] || 'MIDDLE TEXT',
-            x: 0.5,
-            y: 0.50,
-            fontSize: 42,
-            fontFamily: baseFont,
-            fill: '#ffffff',
-            stroke: '#000000',
-            strokeWidth: 6,
-            fontWeight: 'bold',
-            uppercase: true,
-            align: 'center',
-            shadow: false,
-            opacity: 1,
-            maxWidthRatio: 0.9
-          },
-          {
-            id: `layer-${Date.now()}-3`,
-            text: userCustomTexts[2] || 'BOTTOM TEXT',
-            x: 0.5,
-            y: 0.88,
-            fontSize: 42,
-            fontFamily: baseFont,
-            fill: '#ffffff',
-            stroke: '#000000',
-            strokeWidth: 6,
-            fontWeight: 'bold',
-            uppercase: true,
-            align: 'center',
-            shadow: false,
-            opacity: 1,
-            maxWidthRatio: 0.9
-          }
-        ];
-      } else if (boxCount === 4) {
-        this.textLayers = [
-          { id: `layer-${Date.now()}-1`, text: userCustomTexts[0] || 'PANEL 1', x: 0.25, y: 0.25, fontSize: 36, fontFamily: baseFont, fill: '#ffffff', stroke: '#000000', strokeWidth: 6, fontWeight: 'bold', uppercase: true, align: 'center', shadow: false, opacity: 1, maxWidthRatio: 0.44 },
-          { id: `layer-${Date.now()}-2`, text: userCustomTexts[1] || 'PANEL 2', x: 0.75, y: 0.25, fontSize: 36, fontFamily: baseFont, fill: '#ffffff', stroke: '#000000', strokeWidth: 6, fontWeight: 'bold', uppercase: true, align: 'center', shadow: false, opacity: 1, maxWidthRatio: 0.44 },
-          { id: `layer-${Date.now()}-3`, text: userCustomTexts[2] || 'PANEL 3', x: 0.25, y: 0.75, fontSize: 36, fontFamily: baseFont, fill: '#ffffff', stroke: '#000000', strokeWidth: 6, fontWeight: 'bold', uppercase: true, align: 'center', shadow: false, opacity: 1, maxWidthRatio: 0.44 },
-          { id: `layer-${Date.now()}-4`, text: userCustomTexts[3] || 'PANEL 4', x: 0.75, y: 0.75, fontSize: 36, fontFamily: baseFont, fill: '#ffffff', stroke: '#000000', strokeWidth: 6, fontWeight: 'bold', uppercase: true, align: 'center', shadow: false, opacity: 1, maxWidthRatio: 0.44 }
-        ];
-      } else {
-        // Standard classic 2-layer layout
-        this.textLayers = [
-          {
-            id: `layer-${Date.now()}-1`,
-            text: userCustomTexts[0] || 'TOP TEXT',
-            x: 0.5,
-            y: 0.12,
-            fontSize: 48,
-            fontFamily: baseFont,
-            fill: '#ffffff',
-            stroke: '#000000',
-            strokeWidth: 6,
-            fontWeight: 'bold',
-            uppercase: true,
-            align: 'center',
-            shadow: false,
-            opacity: 1,
-            maxWidthRatio: 0.9
-          },
-          {
-            id: `layer-${Date.now()}-2`,
-            text: userCustomTexts[1] || 'BOTTOM TEXT',
-            x: 0.5,
-            y: 0.88,
-            fontSize: 48,
-            fontFamily: baseFont,
-            fill: '#ffffff',
-            stroke: '#000000',
-            strokeWidth: 6,
-            fontWeight: 'bold',
-            uppercase: true,
-            align: 'center',
-            shadow: false,
-            opacity: 1,
-            maxWidthRatio: 0.9
-          }
-        ];
-      }
-      this.activeLayerId = null;
-    }
+    const configs = matchedEntry ? matchedEntry.layers : getAdaptiveLayout(template);
+
+    this.textLayers = configs.map((cfg, idx) =>
+      createLayer(
+        `layer-${Date.now()}-${idx}`,
+        {
+          ...cfg,
+          text: userCustomTexts[idx] || cfg.text
+        },
+        baseFont
+      )
+    );
+    this.activeLayerId = null;
     this.recordSnapshotImmediate();
   }
 

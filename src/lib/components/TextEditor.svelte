@@ -8,12 +8,8 @@
     Pipette,
     Type,
     Bold,
-    CircleSlash,
     MoveHorizontal,
     LayoutGrid,
-    AlignLeft,
-    AlignCenter,
-    AlignRight,
     Eye,
     SunMedium,
     CaseSensitive
@@ -63,7 +59,6 @@
   ];
 
   const quickColors = ['#ffffff', '#facc15', '#000000', '#ef4444', '#38bdf8'];
-  const strokeColors = ['#000000', '#ffffff', 'transparent'];
 
   /** @type {Record<string, boolean>} */
   let collapsedMap = $state({});
@@ -411,68 +406,6 @@
                 >
                   <SunMedium size={14} class="stroke-[2.2]" />
                 </button>
-              </div>
-
-              <!-- Alignment Group: Left, Center, Right -->
-              <div class="inline-flex items-center gap-0.5 rounded-md border border-slate-300 p-0.5 bg-white shadow-2xs">
-                <button
-                  type="button"
-                  class="w-7 h-7 flex items-center justify-center rounded transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 active:scale-[0.96] {(layer.align ?? 'center') === 'left' ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}"
-                  onclick={(e) => { e.stopPropagation(); handleFieldChange(layer.id, 'align', 'left'); }}
-                  title="Align Left"
-                  aria-label="Align left"
-                >
-                  <AlignLeft size={13} class="stroke-[2.2]" />
-                </button>
-
-                <button
-                  type="button"
-                  class="w-7 h-7 flex items-center justify-center rounded transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 active:scale-[0.96] {(layer.align ?? 'center') === 'center' ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}"
-                  onclick={(e) => { e.stopPropagation(); handleFieldChange(layer.id, 'align', 'center'); }}
-                  title="Align Center"
-                  aria-label="Align center"
-                >
-                  <AlignCenter size={13} class="stroke-[2.2]" />
-                </button>
-
-                <button
-                  type="button"
-                  class="w-7 h-7 flex items-center justify-center rounded transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 active:scale-[0.96] {(layer.align ?? 'center') === 'right' ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}"
-                  onclick={(e) => { e.stopPropagation(); handleFieldChange(layer.id, 'align', 'right'); }}
-                  title="Align Right"
-                  aria-label="Align right"
-                >
-                  <AlignRight size={13} class="stroke-[2.2]" />
-                </button>
-              </div>
-
-              <!-- Stroke Outline Controls (All Devices) -->
-              <div class="flex items-center gap-1.5 shrink-0">
-                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 select-none">
-                  Outline
-                </span>
-                <div class="inline-flex items-center gap-0.5 rounded-md border border-slate-300 p-0.5 bg-white shadow-2xs">
-                  {#each strokeColors as sc}
-                    {@const isStrokeActive = (layer.stroke ?? '#000000').toLowerCase() === sc.toLowerCase()}
-                    {@const titleText = sc === 'transparent' ? 'No Outline (Transparent)' : (sc.toLowerCase() === '#000000' ? 'Black Outline' : 'White Outline')}
-                    <button
-                      type="button"
-                      class="w-6 h-6 flex items-center justify-center rounded transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 {isStrokeActive ? 'bg-slate-100 ring-2 ring-slate-900 shadow-2xs' : 'hover:bg-slate-100'}"
-                      onclick={(e) => { e.stopPropagation(); handleFieldChange(layer.id, 'stroke', sc); }}
-                      title={titleText}
-                      aria-label={titleText}
-                    >
-                      {#if sc === 'transparent'}
-                        <CircleSlash size={14} class={isStrokeActive ? 'text-rose-600 stroke-[2.2]' : 'text-slate-400'} />
-                      {:else}
-                        <span
-                          class="w-3.5 h-3.5 rounded-full border {sc.toLowerCase() === '#ffffff' ? 'border-slate-300' : 'border-black/20'} shadow-2xs"
-                          style="background-color: {sc};"
-                        ></span>
-                      {/if}
-                    </button>
-                  {/each}
-                </div>
               </div>
             </div>
           </div>
